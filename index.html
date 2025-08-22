@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slope Practice Game</title>
+  <style>
+    :root {
+      --bg: #181a1b;
+      --fg: #f5f6fa;
+      --accent: #4f8cff;
+      --graph: #2c2f34;
+      --segment: #f5f6fa;
+      --label: #b0b3b8;
+      --input-bg: #23272e;
+      --input-fg: #f5f6fa;
+      --button-bg: #23272e;
+      --button-fg: #f5f6fa;
+      --button-hover: #4f8cff;
+    }
+    [data-theme="light"] {
+      --bg: #f5f6fa;
+      --fg: #181a1b;
+      --accent: #4f8cff;
+      --graph: #e5e7eb;
+      --segment: #181a1b;
+      --label: #4f4f4f;
+      --input-bg: #fff;
+      --input-fg: #181a1b;
+      --button-bg: #e5e7eb;
+      --button-fg: #181a1b;
+      --button-hover: #4f8cff;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Inter', Arial, sans-serif;
+      transition: background 0.3s, color 0.3s;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: 2vw 0 0 0;
+      box-sizing: border-box;
+      width: 100vw;
+      overflow-x: hidden;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 90vw;
+      max-width: 700px;
+      margin-bottom: 1.5rem;
+    }
+    .title {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .theme-toggle {
+      background: var(--button-bg);
+      color: var(--button-fg);
+      border: none;
+      border-radius: 50%;
+      width: 2.5rem;
+      height: 2.5rem;
+      cursor: pointer;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .theme-toggle:hover {
+      background: var(--button-hover);
+      color: #fff;
+    }
+    .graph-area {
+      width: 90vw;
+      max-width: 700px;
+      aspect-ratio: 1 / 1;
+      background: var(--graph);
+      border-radius: 1.2rem;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 2rem;
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      height: min(70vw, 70vh, 700px);
+      max-height: 80vh;
+      box-sizing: border-box;
+    }
+    .controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      width: 90vw;
+      max-width: 400px;
+      margin-bottom: 2rem;
+    }
+    .input-row {
+      display: flex;
+      gap: 0.5rem;
+      width: 100%;
+      justify-content: center;
+    }
+    input[type="text"] {
+      background: var(--input-bg);
+      color: var(--input-fg);
+      border: 1px solid var(--label);
+      border-radius: 0.5rem;
+      padding: 0.6rem 1rem;
+      font-size: 1.1rem;
+      width: 7rem;
+      outline: none;
+      transition: border 0.2s;
+    }
+    input[type="text"]:focus {
+      border: 1.5px solid var(--accent);
+    }
+    button {
+      background: var(--button-bg);
+      color: var(--button-fg);
+      border: none;
+      border-radius: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    button:hover {
+      background: var(--button-hover);
+      color: #fff;
+    }
+    .popup {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .popup.active {
+      visibility: visible;
+      opacity: 1;
+    }
+    .popup-content {
+      background: var(--bg);
+      color: var(--fg);
+      border-radius: 1rem;
+      padding: 2rem 2.5rem;
+      box-shadow: 0 2px 24px rgba(0,0,0,0.18);
+      text-align: center;
+      min-width: 260px;
+      max-width: 90vw;
+    }
+    .popup-content h2 {
+      margin-top: 0;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .popup-content .summary {
+      font-size: 1.1rem;
+      margin-bottom: 1.2rem;
+    }
+    .popup-content button {
+      margin-top: 1rem;
+    }
+    @media (max-width: 600px) {
+      .header, .controls, .graph-area {
+        max-width: 99vw;
+        width: 99vw;
+      }
+      .graph-area {
+        height: min(90vw, 60vh);
+        max-height: 60vw;
+        min-height: 220px;
+      }
+      .popup-content {
+        padding: 1.2rem 0.5rem;
+      }
+    }
+    @media (max-width: 400px) {
+      .graph-area {
+        min-height: 120px;
+      }
+    }
+    .endpoint-label {
+      background: var(--bg);
+      color: var(--label);
+      font: bold 1.1rem Inter, Arial, sans-serif;
+      border-radius: 0.4em;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+      padding: 2px 8px;
+      pointer-events: none;
+      white-space: nowrap;
+      border: 1px solid var(--label);
+      transition: background 0.2s, color 0.2s;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span class="title">Slope Practice Game</span>
+      <button class="theme-toggle" id="themeToggle" title="Toggle dark/light mode">🌙</button>
+    </div>
+    <div class="graph-area" id="graphArea" style="position:relative;">
+      <canvas id="graphCanvas" style="width:100%;height:100%;display:block;position:relative;z-index:1;"></canvas>
+      <div id="labelP1" class="endpoint-label" style="position:absolute;z-index:10;"></div>
+      <div id="labelP2" class="endpoint-label" style="position:absolute;z-index:10;"></div>
+    </div>
+    
+    <div class="controls">
+      <div class="input-row">
+        <input type="text" id="slopeInput" placeholder="Enter slope" autocomplete="off" inputmode="decimal" />
+        <button id="submitBtn">Guess</button>
+      </div>
+      <div class="input-row">
+  <button id="skipBtn">Skip</button>
+  <button id="newGameBtn" style="display:none;">New Game</button>
+      </div>
+      <div id="triesInfo" style="font-size:0.98rem;color:var(--label);"></div>
+    </div>
+  </div>
+  <div class="popup" id="popup">
+    <div class="popup-content" id="popupContent">
+      <!-- Popup content will be injected here -->
+    </div>
+  </div>
+  <script>
+    // --- Utility functions ---
+    function gcd(a, b) {
+      if (!b) return Math.abs(a);
+      return gcd(b, a % b);
+    }
+    function toFraction(n, d) {
+      if (d === 0) return 'undefined';
+      let sign = (n * d < 0) ? '-' : '';
+      n = Math.abs(n); d = Math.abs(d);
+      let g = gcd(n, d);
+      n = n / g; d = d / g;
+      if (d === 1) return sign + n;
+      return sign + n + '/' + d;
+    }
+    function parseSlopeInput(str) {
+      str = str.trim();
+      if (/^[-+]?\d+$/.test(str)) return {num: parseInt(str), den: 1};
+      if (/^[-+]?\d*\.\d+$/.test(str)) return {num: parseFloat(str), den: 1};
+      let frac = str.match(/^([-+]?\d+)\s*\/\s*(\d+)$/);
+      if (frac) return {num: parseInt(frac[1]), den: parseInt(frac[2])};
+      return null;
+    }
+    function slopeEqual(a, b) {
+      // Accept if within 0.01 for decimals, or exact for fractions
+      if (a.den === 1 && b.den === 1) return Math.abs(a.num - b.num) < 0.01;
+      let v1 = a.num / a.den, v2 = b.num / b.den;
+      return Math.abs(v1 - v2) < 0.01;
+    }
+    function slopeToString(num, den) {
+      return toFraction(num, den) + ' (' + (den === 0 ? 'undefined' : (num/den).toFixed(2)) + ')';
+    }
+    // --- Game state ---
+    let state = {
+      p1: {x:0, y:0},
+      p2: {x:0, y:0},
+      slope: {num:0, den:0},
+      tries: 0,
+      startTime: 0,
+      elapsed: 0,
+      solved: false,
+      theme: 'dark',
+    };
+    // --- Local storage ---
+    function saveState() {
+      localStorage.setItem('slopeGameState', JSON.stringify(state));
+    }
+    function loadState() {
+      let s = localStorage.getItem('slopeGameState');
+      if (s) {
+        try {
+          let obj = JSON.parse(s);
+          // Validate state: must have p1, p2, slope, and not be empty
+          if (obj && obj.p1 && obj.p2 && obj.slope && typeof obj.solved === 'boolean') {
+            Object.assign(state, obj);
+            return true;
+          }
+        } catch {}
+      }
+      return false;
+    }
+    // --- Graph drawing ---
+    const canvas = document.getElementById('graphCanvas');
+    let ctx = null;
+    function resizeCanvas() {
+      let dpr = window.devicePixelRatio || 1;
+      let w = canvas.parentElement.offsetWidth;
+      let h = canvas.parentElement.offsetHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      ctx = canvas.getContext('2d');
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.scale(dpr, dpr);
+      drawGraph();
+    }
+    window.addEventListener('resize', resizeCanvas);
+    // --- Generate random segment ---
+    function randomInt(a, b) {
+      return Math.floor(Math.random() * (b - a + 1)) + a;
+    }
+    function newSegment() {
+      // Pick two random points, not vertical, not same point, in range -8..8
+      let x1, y1, x2, y2;
+      do {
+        x1 = randomInt(-8,8); y1 = randomInt(-8,8);
+        x2 = randomInt(-8,8); y2 = randomInt(-8,8);
+      } while ((x1 === x2 && y1 === y2) || x1 === x2);
+      state.p1 = {x:x1, y:y1};
+      state.p2 = {x:x2, y:y2};
+      state.slope = {num: y2-y1, den: x2-x1};
+      state.tries = 0;
+      state.startTime = Date.now();
+      state.elapsed = 0;
+      state.solved = false;
+      saveState();
+      drawGraph();
+      updateTriesInfo();
+      document.getElementById('slopeInput').value = '';
+      document.getElementById('newGameBtn').style.display = 'none';
+    }
+    // --- Draw graph and segment ---
+    function drawGraph() {
+      if (!ctx) return;
+      let w = canvas.width / (window.devicePixelRatio||1);
+      let h = canvas.height / (window.devicePixelRatio||1);
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      // Axes
+      ctx.save();
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--label');
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(w/2, 0); ctx.lineTo(w/2, h);
+      ctx.moveTo(0, h/2); ctx.lineTo(w, h/2);
+      ctx.stroke();
+      ctx.restore();
+      // Grid
+      ctx.save();
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--label');
+      ctx.globalAlpha = 0.18;
+      let N = 8;
+      let step = Math.min(w,h)/(2*N+2);
+      for (let i=-N; i<=N; ++i) {
+        let x = w/2 + i*step;
+        ctx.beginPath();
+        ctx.moveTo(x, 0); ctx.lineTo(x, h);
+        ctx.stroke();
+        let y = h/2 + i*step;
+        ctx.beginPath();
+        ctx.moveTo(0, y); ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+      ctx.restore();
+      // Segment
+      let toScreen = (pt) => [w/2 + pt.x*step, h/2 - pt.y*step];
+      ctx.save();
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--segment');
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      let [x1, y1] = toScreen(state.p1);
+      let [x2, y2] = toScreen(state.p2);
+      ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+      ctx.stroke();
+      ctx.restore();
+      // Endpoints
+      ctx.save();
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent');
+      ctx.beginPath(); ctx.arc(x1, y1, 8, 0, 2*Math.PI); ctx.fill();
+      ctx.beginPath(); ctx.arc(x2, y2, 8, 0, 2*Math.PI); ctx.fill();
+      ctx.restore();
+      // Labels as HTML elements
+      const labelP1 = document.getElementById('labelP1');
+      const labelP2 = document.getElementById('labelP2');
+      labelP1.textContent = `(${state.p1.x}, ${state.p1.y})`;
+      labelP2.textContent = `(${state.p2.x}, ${state.p2.y})`;
+      // Position labels
+      function setLabelPos(label, x, y) {
+        const areaRect = document.getElementById('graphArea').getBoundingClientRect();
+        const canvasRect = canvas.getBoundingClientRect();
+        // x, y are relative to canvas top-left
+        // Offset for label
+        const offsetX = 14, offsetY = 14;
+        // Convert to relative to graphArea
+        label.style.left = (canvas.offsetLeft + x + offsetX) + 'px';
+        label.style.top = (canvas.offsetTop + y + offsetY) + 'px';
+      }
+      setLabelPos(labelP1, x1, y1);
+      setLabelPos(labelP2, x2, y2);
+    }
+    // --- Controls ---
+    function updateTriesInfo() {
+      let info = `Tries: ${state.tries}`;
+      if (state.solved) info += ` | Time: ${(state.elapsed/1000).toFixed(1)}s`;
+      document.getElementById('triesInfo').textContent = info;
+    }
+    document.getElementById('submitBtn').onclick = function() {
+      if (state.solved) return;
+      let val = document.getElementById('slopeInput').value;
+      let parsed = parseSlopeInput(val);
+      if (!parsed) {
+        document.getElementById('slopeInput').style.borderColor = 'red';
+        setTimeout(()=>{
+          document.getElementById('slopeInput').style.borderColor = '';
+        }, 600);
+        return;
+      }
+      state.tries++;
+      saveState();
+      if (slopeEqual(parsed, state.slope)) {
+        state.solved = true;
+        state.elapsed = Date.now() - state.startTime;
+        saveState();
+        showPopup(true);
+        document.getElementById('newGameBtn').style.display = '';
+      } else {
+        updateTriesInfo();
+        document.getElementById('slopeInput').value = '';
+        document.getElementById('slopeInput').focus();
+      }
+    };
+    document.getElementById('slopeInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') document.getElementById('submitBtn').click();
+    });
+    document.getElementById('skipBtn').onclick = function() {
+      showPopup(false);
+      document.getElementById('newGameBtn').style.display = '';
+    };
+    document.getElementById('newGameBtn').onclick = function() {
+      newSegment();
+      hidePopup();
+    };
+    // --- Popup ---
+    function showPopup(solved) {
+      let popup = document.getElementById('popup');
+      let content = document.getElementById('popupContent');
+      let slopeStr = slopeToString(state.slope.num, state.slope.den);
+      let html = '';
+      if (solved) {
+        html += `<h2>Correct!</h2>`;
+        html += `<div class="summary">You got it in <b>${state.tries}</b> tries<br>Time: <b>${(state.elapsed/1000).toFixed(1)}s</b></div>`;
+        html += `<div>Slope: <b>${slopeStr}</b></div>`;
+      } else {
+        html += `<h2>Skipped</h2>`;
+        html += `<div>Slope: <b>${slopeStr}</b></div>`;
+      }
+      html += `<button id=\"popupNewGameBtn\">New Game</button>`;
+      content.innerHTML = html;
+      popup.classList.add('active');
+    }
+    function hidePopup() {
+      document.getElementById('popup').classList.remove('active');
+    }
+    // Handle new game from popup
+    document.addEventListener('click', function(e) {
+      if (e.target && e.target.id === 'popupNewGameBtn') {
+        newSegment();
+        hidePopup();
+      }
+    });
+    // --- Theme toggle ---
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      state.theme = theme;
+      document.getElementById('themeToggle').textContent = theme === 'dark' ? '🌙' : '☀️';
+      saveState();
+      drawGraph(); // Redraw to update segment/endpoint color
+    }
+    document.getElementById('themeToggle').onclick = function() {
+      setTheme(state.theme === 'dark' ? 'light' : 'dark');
+    };
+    // --- Init ---
+    function startGame() {
+      let loaded = loadState();
+      setTheme(state.theme || 'light');
+      resizeCanvas();
+      // If no valid state, always start a new segment
+      if (!loaded) {
+        newSegment();
+      } else {
+        drawGraph();
+        updateTriesInfo();
+        if (state.solved) document.getElementById('newGameBtn').style.display = '';
+      }
+    }
+    window.onload = startGame;
+  </script>
+</body>
+</html>
