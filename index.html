@@ -312,6 +312,8 @@ window.addEventListener('DOMContentLoaded', function() {
       state.theme = theme;
       themeIcon.className = theme === 'dark' ? 'bi bi-moon' : 'bi bi-brightness-high';
       saveState();
+      // Redraw graph to update grid color
+      drawGraph();
     }
     function toggleTheme() {
       setTheme(state.theme === 'light' ? 'dark' : 'light');
