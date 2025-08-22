@@ -9,10 +9,20 @@
         <h5 class="modal-title" id="promptModalLabel">Prompt Used</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body" id="promptModalBody" style="white-space:pre-wrap;font-family:monospace;font-size:1.05em;background:#f8f9fa;"></div>
+  <div class="modal-body" id="promptModalBody" style="white-space:pre-wrap;font-family:monospace;font-size:1.05em;"></div>
     </div>
   </div>
 </div>
+<style>
+  #promptModalBody {
+    background: #f8f9fa;
+    color: #181a1b;
+  }
+  [data-theme="dark"] #promptModalBody {
+    background: #23272b;
+    color: #f8f9fa;
+  }
+</style>
 <script>
 window.addEventListener('DOMContentLoaded', function() {
   const viewPromptBtn = document.getElementById('view-prompt-btn');
