@@ -1,0 +1,20 @@
+In a standalone .html file named index.html, create a game for practicing finding the slope of a random segment on a graph. 
+
+The game will work like this:
+- Have a graph with a randomized segment drawn on it. 
+- The endpoints will be labeled with their coordinates.
+- The segment will not be labelled.
+- The user will guess the slope until they get it correct, or until they click the skip button which will reveal the answer in a popup. 
+- When the user correctly guesses the slope, there should be a popup that reports to them how many tries they got it in, the time it took them, as well as the slope in fraction and decimal form. 
+- Have a button to go to a new game in the popups. 
+- Have a dark and lightmode toggle somewhere, with the default setting being lightmode. I also want you to save the state of the game in local storage. 
+- Make all of this in a single standalone html file.
+- Make the endpoint labels html elements, not drawn on the canvas.
+
+Styling:
+- Make the entire program fit onto the screen. Make the graph as fill as much space as it can for good visibility.
+- The graph should be minimalistic and have a monotone color scheme.
+- Focus on appealing styling.
+- Make the endpoint labels html elements, not drawn on the canvas.
+- Use bootstrap for the styling.
+- The buttons should be to the right of the grid.

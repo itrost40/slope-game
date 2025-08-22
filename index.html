@@ -1,515 +1,547 @@
+  <!-- ...existing code... -->
+</body>
+<button id="view-prompt-btn" class="btn btn-secondary" style="position:fixed;bottom:24px;right:24px;z-index:1000;box-shadow:0 2px 8px 0 rgba(0,0,0,0.12);">View Prompt</button>
+<!-- Prompt Modal -->
+<div class="modal fade" id="promptModal" tabindex="-1" aria-labelledby="promptModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="promptModalLabel">Prompt Used</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="promptModalBody" style="white-space:pre-wrap;font-family:monospace;font-size:1.05em;background:#f8f9fa;"></div>
+    </div>
+  </div>
+</div>
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+  const viewPromptBtn = document.getElementById('view-prompt-btn');
+  const promptModal = new bootstrap.Modal(document.getElementById('promptModal'));
+  const promptModalBody = document.getElementById('promptModalBody');
+  viewPromptBtn.addEventListener('click', async function() {
+    try {
+      const resp = await fetch('prompt_used.txt');
+      if (!resp.ok) throw new Error('Could not load prompt_used.txt');
+      const text = await resp.text();
+      promptModalBody.textContent = text;
+    } catch (e) {
+      promptModalBody.textContent = 'Failed to load prompt_used.txt.';
+    }
+    promptModal.show();
+  });
+});
+</script>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Slope Practice Game</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     :root {
-      --bg: #181a1b;
-      --fg: #f5f6fa;
-      --accent: #4f8cff;
-      --graph: #2c2f34;
-      --segment: #f5f6fa;
-      --label: #b0b3b8;
-      --input-bg: #23272e;
-      --input-fg: #f5f6fa;
-      --button-bg: #23272e;
-      --button-fg: #f5f6fa;
-      --button-hover: #4f8cff;
+  --bg: #f8f9fb;
+  --fg: #181a1b;
+  --accent: #007bff;
+  --grid: #b0b6c3;
+  --graph-bg: #e6e9f0;
+  --segment: #007bff;
+  --label-bg: #fff;
+  --label-fg: #181a1b;
+  --graph-border: #444a5a;
     }
-    [data-theme="light"] {
-      --bg: #f5f6fa;
-      --fg: #181a1b;
-      --accent: #4f8cff;
-      --graph: #e5e7eb;
-      --segment: #181a1b;
-      --label: #4f4f4f;
-      --input-bg: #fff;
-      --input-fg: #181a1b;
-      --button-bg: #e5e7eb;
-      --button-fg: #181a1b;
-      --button-hover: #4f8cff;
+    [data-theme="dark"] {
+  --bg: #181a1b;
+  --fg: #f8f9fa;
+  --accent: #0dcaf0;
+  --grid: #4a4e5a;
+  --graph-bg: #23242a;
+  --segment: #0dcaf0;
+  --label-bg: #23272b;
+  --label-fg: #f8f9fa;
+  --graph-border: #b0b6c3;
     }
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
+    body {
       background: var(--bg);
       color: var(--fg);
-      font-family: 'Inter', Arial, sans-serif;
-      transition: background 0.3s, color 0.3s;
-    }
-    .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
       min-height: 100vh;
-      min-height: 100dvh;
-      padding: 2vw 0 0 0;
-      box-sizing: border-box;
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      transition: background 0.2s, color 0.2s;
+    }
+    .game-container {
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
       width: 100vw;
-      overflow-x: hidden;
-    }
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 90vw;
-      max-width: 700px;
-      margin-bottom: 1.5rem;
-    }
-    .title {
-      font-size: 2rem;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-    }
-    .theme-toggle {
-      background: var(--button-bg);
-      color: var(--button-fg);
-      border: none;
-      border-radius: 50%;
-      width: 2.5rem;
-      height: 2.5rem;
-      cursor: pointer;
-      font-size: 1.3rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s;
-    }
-    .theme-toggle:hover {
-      background: var(--button-hover);
-      color: #fff;
+      overflow: hidden;
     }
     .graph-area {
-      width: 90vw;
-      max-width: 700px;
-      aspect-ratio: 1 / 1;
-      background: var(--graph);
-      border-radius: 1.2rem;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.12);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 2rem;
-      position: relative;
-      min-width: 0;
-      min-height: 0;
-      height: min(70vw, 70vh, 700px);
-      max-height: 80vh;
-      box-sizing: border-box;
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-width: 0;
+  /* No border here, only on canvas */
     }
-    .controls {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1rem;
-      width: 90vw;
-      max-width: 400px;
-      margin-bottom: 2rem;
-    }
-    .input-row {
-      display: flex;
-      gap: 0.5rem;
-      width: 100%;
-      justify-content: center;
-    }
-    input[type="text"] {
-      background: var(--input-bg);
-      color: var(--input-fg);
-      border: 1px solid var(--label);
-      border-radius: 0.5rem;
-      padding: 0.6rem 1rem;
-      font-size: 1.1rem;
-      width: 7rem;
-      outline: none;
-      transition: border 0.2s;
-    }
-    input[type="text"]:focus {
-      border: 1.5px solid var(--accent);
-    }
-    button {
-      background: var(--button-bg);
-      color: var(--button-fg);
-      border: none;
-      border-radius: 0.5rem;
-      padding: 0.6rem 1.2rem;
-      font-size: 1.1rem;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s;
-    }
-    button:hover {
-      background: var(--button-hover);
-      color: #fff;
-    }
-    .popup {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.45);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      visibility: hidden;
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-    .popup.active {
-      visibility: visible;
-      opacity: 1;
-    }
-    .popup-content {
-      background: var(--bg);
-      color: var(--fg);
-      border-radius: 1rem;
-      padding: 2rem 2.5rem;
-      box-shadow: 0 2px 24px rgba(0,0,0,0.18);
-      text-align: center;
-      min-width: 260px;
-      max-width: 90vw;
-    }
-    .popup-content h2 {
-      margin-top: 0;
-      font-size: 1.5rem;
-      margin-bottom: 1rem;
-    }
-    .popup-content .summary {
-      font-size: 1.1rem;
-      margin-bottom: 1.2rem;
-    }
-    .popup-content button {
-      margin-top: 1rem;
-    }
-    @media (max-width: 600px) {
-      .header, .controls, .graph-area {
-        max-width: 99vw;
-        width: 99vw;
-      }
-      .graph-area {
-        height: min(90vw, 60vh);
-        max-height: 60vw;
-        min-height: 220px;
-      }
-      .popup-content {
-        padding: 1.2rem 0.5rem;
-      }
-    }
-    @media (max-width: 400px) {
-      .graph-area {
-        min-height: 120px;
-      }
+    #graph-canvas {
+  width: 100%;
+  height: 100%;
+  max-width: 100vw;
+  max-height: 100vh;
+  background: var(--graph-bg);
+  display: block;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 16px 0 rgba(0,0,0,0.07);
+  /* No border here, border will be drawn in canvas */
+  transition: background 0.2s, border 0.2s;
     }
     .endpoint-label {
-      background: var(--bg);
-      color: var(--label);
-      font: bold 1.1rem Inter, Arial, sans-serif;
+      position: absolute;
+      background: var(--label-bg);
+      color: var(--label-fg);
+      padding: 0.2em 0.5em;
       border-radius: 0.4em;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.08);
-      padding: 2px 8px;
+      font-size: 1.1em;
+      font-weight: 500;
+      box-shadow: 0 1px 4px 0 rgba(0,0,0,0.04);
       pointer-events: none;
-      white-space: nowrap;
-      border: 1px solid var(--label);
+      user-select: none;
+      border: 1px solid var(--grid);
+      z-index: 2;
       transition: background 0.2s, color 0.2s;
+    }
+    .controls-area {
+      width: 340px;
+      min-width: 280px;
+      max-width: 400px;
+      background: var(--bg);
+      border-left: 1px solid var(--grid);
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+      padding: 2rem 1.5rem 1.5rem 1.5rem;
+      gap: 2rem;
+      box-shadow: -2px 0 12px 0 rgba(0,0,0,0.03);
+      transition: background 0.2s;
+    }
+    .controls-area h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: var(--accent);
+    }
+    .form-label {
+      color: var(--fg);
+    }
+    .btn-toggle {
+      margin-bottom: 1.5rem;
+      align-self: flex-end;
+    }
+    .btn-primary, .btn-outline-primary {
+      font-weight: 500;
+      font-size: 1.1em;
+    }
+    .tries-info {
+      font-size: 1.1em;
+      color: var(--fg);
+      margin-top: 0.5em;
+    }
+    @media (max-width: 900px) {
+      .game-container {
+        flex-direction: column;
+      }
+      .controls-area {
+        width: 100vw;
+        border-left: none;
+        border-top: 1px solid var(--grid);
+        box-shadow: 0 -2px 12px 0 rgba(0,0,0,0.03);
+        padding: 1.5rem 1rem;
+      }
+      .graph-area {
+        min-height: 320px;
+        height: 50vh;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <span class="title">Slope Practice Game</span>
-      <button class="theme-toggle" id="themeToggle" title="Toggle dark/light mode">🌙</button>
+  <div class="game-container">
+    <div class="graph-area">
+      <canvas id="graph-canvas"></canvas>
+      <div id="labelA" class="endpoint-label"></div>
+      <div id="labelB" class="endpoint-label"></div>
     </div>
-    <div class="graph-area" id="graphArea" style="position:relative;">
-      <canvas id="graphCanvas" style="width:100%;height:100%;display:block;position:relative;z-index:1;"></canvas>
-      <div id="labelP1" class="endpoint-label" style="position:absolute;z-index:10;"></div>
-      <div id="labelP2" class="endpoint-label" style="position:absolute;z-index:10;"></div>
-    </div>
-    
-    <div class="controls">
-      <div class="input-row">
-        <input type="text" id="slopeInput" placeholder="Enter slope" autocomplete="off" inputmode="decimal" />
-        <button id="submitBtn">Guess</button>
+    <div class="controls-area">
+      <button id="toggle-theme" class="btn btn-outline-secondary btn-toggle" title="Toggle dark/light mode">
+        <span id="theme-icon" class="bi bi-brightness-high"></span> Toggle Dark/Light
+      </button>
+      <h2>Slope Practice</h2>
+      <form id="guess-form" autocomplete="off">
+        <label for="guess-input" class="form-label">Enter the slope (as a fraction or decimal):</label>
+        <input type="text" class="form-control mb-2" id="guess-input" placeholder="e.g. 2/3 or 0.67" required autofocus>
+        <button type="submit" class="btn btn-primary w-100 mb-2">Submit Guess</button>
+        <button type="button" class="btn btn-outline-primary w-100" id="skip-btn">Skip</button>
+      </form>
+      <div class="tries-info">
+        <span id="tries-count">Tries: 0</span><br>
+        <span id="timer">Time: 0s</span>
       </div>
-      <div class="input-row">
-  <button id="skipBtn">Skip</button>
-  <button id="newGameBtn" style="display:none;">New Game</button>
-      </div>
-      <div id="triesInfo" style="font-size:0.98rem;color:var(--label);"></div>
     </div>
   </div>
-  <div class="popup" id="popup">
-    <div class="popup-content" id="popupContent">
-      <!-- Popup content will be injected here -->
+
+  <!-- Result Modal -->
+  <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="resultModalLabel">Result</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="resultModalBody"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" id="new-game-btn" data-bs-dismiss="modal">New Game</button>
+        </div>
+      </div>
     </div>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fraction.js@4.2.0/fraction.min.js"></script>
   <script>
-    // --- Utility functions ---
+    // --- Settings ---
+    const GRID_SIZE = 10;
+    const PADDING = 40;
+    const POINT_RADIUS = 7;
+    const SEGMENT_WIDTH = 4;
+    const LABEL_OFFSET = 12;
+    const MIN_DIST = 3; // min grid distance between endpoints
+    const TIMER_INTERVAL = 1000;
+
+    // --- State ---
+    let state = {
+      pointA: null,
+      pointB: null,
+      tries: 0,
+      startTime: null,
+      elapsed: 0,
+      solved: false,
+      theme: 'light',
+    };
+    let timerId = null;
+
+    // --- DOM ---
+    const canvas = document.getElementById('graph-canvas');
+    const labelA = document.getElementById('labelA');
+    const labelB = document.getElementById('labelB');
+    const guessForm = document.getElementById('guess-form');
+    const guessInput = document.getElementById('guess-input');
+    const triesCount = document.getElementById('tries-count');
+    const timerDisplay = document.getElementById('timer');
+    const skipBtn = document.getElementById('skip-btn');
+    const resultModal = new bootstrap.Modal(document.getElementById('resultModal'));
+    const resultModalBody = document.getElementById('resultModalBody');
+    const newGameBtn = document.getElementById('new-game-btn');
+    const toggleThemeBtn = document.getElementById('toggle-theme');
+    const themeIcon = document.getElementById('theme-icon');
+
+    // --- Utility ---
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
     function gcd(a, b) {
-      if (!b) return Math.abs(a);
+      if (!b) return a;
       return gcd(b, a % b);
     }
-    function toFraction(n, d) {
-      if (d === 0) return 'undefined';
-      let sign = (n * d < 0) ? '-' : '';
-      n = Math.abs(n); d = Math.abs(d);
-      let g = gcd(n, d);
-      n = n / g; d = d / g;
-      if (d === 1) return sign + n;
-      return sign + n + '/' + d;
+    function slopeFrac(a, b) {
+      let dy = b.y - a.y, dx = b.x - a.x;
+      if (dx === 0) return null;
+      let sign = (dy * dx < 0) ? -1 : 1;
+      let num = Math.abs(dy), den = Math.abs(dx);
+      let d = gcd(num, den);
+      return { num: sign * num / d, den: den / d };
+    }
+    function slopeDecimal(a, b) {
+      let dx = b.x - a.x;
+      if (dx === 0) return null;
+      return (b.y - a.y) / dx;
+    }
+    function formatFrac(frac) {
+      if (!frac) return 'undefined';
+      if (frac.den === 1) return frac.num.toString();
+      return frac.num + '/' + frac.den;
+    }
+    function formatDecimal(val) {
+      if (val === null) return 'undefined';
+      return val.toFixed(3).replace(/\.0+$/, '');
     }
     function parseSlopeInput(str) {
       str = str.trim();
-      if (/^[-+]?\d+$/.test(str)) return {num: parseInt(str), den: 1};
-      if (/^[-+]?\d*\.\d+$/.test(str)) return {num: parseFloat(str), den: 1};
-      let frac = str.match(/^([-+]?\d+)\s*\/\s*(\d+)$/);
-      if (frac) return {num: parseInt(frac[1]), den: parseInt(frac[2])};
+      if (/^[-+]?\d+\s*\/\s*[-+]?\d+$/.test(str)) {
+        let [n, d] = str.split('/').map(s => parseInt(s));
+        if (d === 0) return null;
+        return n / d;
+      }
+      let val = Number(str);
+      if (!isNaN(val)) return val;
       return null;
     }
-    function slopeEqual(a, b) {
-      // Accept if within 0.01 for decimals, or exact for fractions
-      if (a.den === 1 && b.den === 1) return Math.abs(a.num - b.num) < 0.01;
-      let v1 = a.num / a.den, v2 = b.num / b.den;
-      return Math.abs(v1 - v2) < 0.01;
-    }
-    function slopeToString(num, den) {
-      return toFraction(num, den) + ' (' + (den === 0 ? 'undefined' : (num/den).toFixed(2)) + ')';
-    }
-    // --- Game state ---
-    let state = {
-      p1: {x:0, y:0},
-      p2: {x:0, y:0},
-      slope: {num:0, den:0},
-      tries: 0,
-      startTime: 0,
-      elapsed: 0,
-      solved: false,
-      theme: 'dark',
-    };
-    // --- Local storage ---
     function saveState() {
-      localStorage.setItem('slopeGameState', JSON.stringify(state));
+      localStorage.setItem('slopeGameState', JSON.stringify({
+        ...state,
+        elapsed: state.solved ? state.elapsed : Math.floor((Date.now() - state.startTime) / 1000),
+      }));
     }
     function loadState() {
       let s = localStorage.getItem('slopeGameState');
-      if (s) {
-        try {
-          let obj = JSON.parse(s);
-          // Validate state: must have p1, p2, slope, and not be empty
-          if (obj && obj.p1 && obj.p2 && obj.slope && typeof obj.solved === 'boolean') {
-            Object.assign(state, obj);
-            return true;
-          }
-        } catch {}
-      }
-      return false;
+      if (!s) return false;
+      try {
+        let obj = JSON.parse(s);
+        if (!obj.pointA || !obj.pointB) return false;
+        state = obj;
+        return true;
+      } catch { return false; }
     }
-    // --- Graph drawing ---
-    const canvas = document.getElementById('graphCanvas');
-    let ctx = null;
+    function clearState() {
+      localStorage.removeItem('slopeGameState');
+    }
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      state.theme = theme;
+      themeIcon.className = theme === 'dark' ? 'bi bi-moon' : 'bi bi-brightness-high';
+      saveState();
+    }
+    function toggleTheme() {
+      setTheme(state.theme === 'light' ? 'dark' : 'light');
+    }
+
+    // --- Graph ---
     function resizeCanvas() {
+      let area = document.querySelector('.graph-area');
+      let w = area.clientWidth, h = area.clientHeight;
       let dpr = window.devicePixelRatio || 1;
-      let w = canvas.parentElement.offsetWidth;
-      let h = canvas.parentElement.offsetHeight;
       canvas.width = w * dpr;
       canvas.height = h * dpr;
       canvas.style.width = w + 'px';
       canvas.style.height = h + 'px';
-      ctx = canvas.getContext('2d');
-      ctx.setTransform(1,0,0,1,0,0);
-      ctx.scale(dpr, dpr);
-      drawGraph();
     }
-    window.addEventListener('resize', resizeCanvas);
-    // --- Generate random segment ---
-    function randomInt(a, b) {
-      return Math.floor(Math.random() * (b - a + 1)) + a;
+    function gridToCanvas(x, y) {
+      let w = canvas.width, h = canvas.height;
+      let size = Math.min(w, h) - 2 * PADDING * (window.devicePixelRatio || 1);
+      let ox = (w - size) / 2, oy = (h - size) / 2;
+      let px = ox + (x / GRID_SIZE) * size;
+      let py = oy + ((GRID_SIZE - y) / GRID_SIZE) * size;
+      return { x: px, y: py };
     }
-    function newSegment() {
-      // Pick two random points, not vertical, not same point, in range -8..8
-      let x1, y1, x2, y2;
-      do {
-        x1 = randomInt(-8,8); y1 = randomInt(-8,8);
-        x2 = randomInt(-8,8); y2 = randomInt(-8,8);
-      } while ((x1 === x2 && y1 === y2) || x1 === x2);
-      state.p1 = {x:x1, y:y1};
-      state.p2 = {x:x2, y:y2};
-      state.slope = {num: y2-y1, den: x2-x1};
-      state.tries = 0;
-      state.startTime = Date.now();
-      state.elapsed = 0;
-      state.solved = false;
-      saveState();
-      drawGraph();
-      updateTriesInfo();
-      document.getElementById('slopeInput').value = '';
-      document.getElementById('newGameBtn').style.display = 'none';
-    }
-    // --- Draw graph and segment ---
     function drawGraph() {
-      if (!ctx) return;
-      let w = canvas.width / (window.devicePixelRatio||1);
-      let h = canvas.height / (window.devicePixelRatio||1);
+      let ctx = canvas.getContext('2d');
+      ctx.setTransform(1,0,0,1,0,0);
       ctx.clearRect(0,0,canvas.width,canvas.height);
-      // Axes
+      let w = canvas.width, h = canvas.height;
+      let size = Math.min(w, h) - 2 * PADDING * (window.devicePixelRatio || 1);
+      let ox = (w - size) / 2, oy = (h - size) / 2;
+      // Fill graph background (different from grid color)
       ctx.save();
-      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--label');
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      ctx.moveTo(w/2, 0); ctx.lineTo(w/2, h);
-      ctx.moveTo(0, h/2); ctx.lineTo(w, h/2);
-      ctx.stroke();
+      ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--graph-bg');
+      ctx.fillRect(ox, oy, size, size);
       ctx.restore();
-      // Grid
+      // Draw border rectangle around the grid
       ctx.save();
-      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--label');
-      ctx.globalAlpha = 0.18;
-      let N = 8;
-      let step = Math.min(w,h)/(2*N+2);
-      for (let i=-N; i<=N; ++i) {
-        let x = w/2 + i*step;
+      ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--graph-border');
+      ctx.lineWidth = 3 * (window.devicePixelRatio || 1);
+      ctx.strokeRect(ox, oy, size, size);
+      ctx.restore();
+      // Draw grid lines
+      ctx.save();
+      ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--grid');
+      ctx.lineWidth = 1.7 * (window.devicePixelRatio || 1);
+      for (let i = 0; i <= GRID_SIZE; ++i) {
+        let gx = ox + (i / GRID_SIZE) * size;
+        let gy = oy + (i / GRID_SIZE) * size;
         ctx.beginPath();
-        ctx.moveTo(x, 0); ctx.lineTo(x, h);
+        ctx.moveTo(gx, oy);
+        ctx.lineTo(gx, oy + size);
         ctx.stroke();
-        let y = h/2 + i*step;
         ctx.beginPath();
-        ctx.moveTo(0, y); ctx.lineTo(w, y);
+        ctx.moveTo(ox, gy);
+        ctx.lineTo(ox + size, gy);
         ctx.stroke();
       }
       ctx.restore();
-      // Segment
-      let toScreen = (pt) => [w/2 + pt.x*step, h/2 - pt.y*step];
+      // Draw axes with high contrast
       ctx.save();
-      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--segment');
-      ctx.lineWidth = 4;
+      ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--fg');
+      ctx.lineWidth = 3 * (window.devicePixelRatio || 1);
       ctx.beginPath();
-      let [x1, y1] = toScreen(state.p1);
-      let [x2, y2] = toScreen(state.p2);
-      ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+      // x-axis
+      let y0 = gridToCanvas(0,0).y;
+      ctx.moveTo(ox, y0);
+      ctx.lineTo(ox + size, y0);
+      // y-axis
+      let x0 = gridToCanvas(0,0).x;
+      ctx.moveTo(x0, oy);
+      ctx.lineTo(x0, oy + size);
       ctx.stroke();
       ctx.restore();
-      // Endpoints
-      ctx.save();
-      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent');
-      ctx.beginPath(); ctx.arc(x1, y1, 8, 0, 2*Math.PI); ctx.fill();
-      ctx.beginPath(); ctx.arc(x2, y2, 8, 0, 2*Math.PI); ctx.fill();
-      ctx.restore();
-      // Labels as HTML elements
-      const labelP1 = document.getElementById('labelP1');
-      const labelP2 = document.getElementById('labelP2');
-      labelP1.textContent = `(${state.p1.x}, ${state.p1.y})`;
-      labelP2.textContent = `(${state.p2.x}, ${state.p2.y})`;
-      // Position labels
-      function setLabelPos(label, x, y) {
-        const areaRect = document.getElementById('graphArea').getBoundingClientRect();
-        const canvasRect = canvas.getBoundingClientRect();
-        // x, y are relative to canvas top-left
-        // Offset for label
-        const offsetX = 14, offsetY = 14;
-        // Convert to relative to graphArea
-        label.style.left = (canvas.offsetLeft + x + offsetX) + 'px';
-        label.style.top = (canvas.offsetTop + y + offsetY) + 'px';
+      // Draw segment
+      if (state.pointA && state.pointB) {
+        let a = gridToCanvas(state.pointA.x, state.pointA.y);
+        let b = gridToCanvas(state.pointB.x, state.pointB.y);
+        ctx.save();
+        ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--segment');
+        ctx.lineWidth = SEGMENT_WIDTH * (window.devicePixelRatio || 1);
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+        ctx.restore();
+        // Draw endpoints
+        ctx.save();
+        ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--segment');
+        ctx.beginPath();
+        ctx.arc(a.x, a.y, POINT_RADIUS * (window.devicePixelRatio || 1), 0, 2*Math.PI);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, POINT_RADIUS * (window.devicePixelRatio || 1), 0, 2*Math.PI);
+        ctx.fill();
+        ctx.restore();
+        // Position endpoint labels
+        let areaRect = canvas.getBoundingClientRect();
+        let ax = a.x / (window.devicePixelRatio || 1), ay = a.y / (window.devicePixelRatio || 1);
+        let bx = b.x / (window.devicePixelRatio || 1), by = b.y / (window.devicePixelRatio || 1);
+        labelA.style.left = (ax + areaRect.left - areaRect.left + LABEL_OFFSET) + 'px';
+        labelA.style.top = (ay + areaRect.top - areaRect.top - LABEL_OFFSET) + 'px';
+        labelB.style.left = (bx + areaRect.left - areaRect.left + LABEL_OFFSET) + 'px';
+        labelB.style.top = (by + areaRect.top - areaRect.top - LABEL_OFFSET) + 'px';
+        labelA.textContent = `(${state.pointA.x}, ${state.pointA.y})`;
+        labelB.textContent = `(${state.pointB.x}, ${state.pointB.y})`;
+        labelA.style.display = 'block';
+        labelB.style.display = 'block';
+      } else {
+        labelA.style.display = 'none';
+        labelB.style.display = 'none';
       }
-      setLabelPos(labelP1, x1, y1);
-      setLabelPos(labelP2, x2, y2);
     }
-    // --- Controls ---
-    function updateTriesInfo() {
-      let info = `Tries: ${state.tries}`;
-      if (state.solved) info += ` | Time: ${(state.elapsed/1000).toFixed(1)}s`;
-      document.getElementById('triesInfo').textContent = info;
+
+    // --- Game Logic ---
+    function randomSegment() {
+      let a, b;
+      do {
+        a = { x: randomInt(0, GRID_SIZE), y: randomInt(0, GRID_SIZE) };
+        b = { x: randomInt(0, GRID_SIZE), y: randomInt(0, GRID_SIZE) };
+      } while ((a.x === b.x && a.y === b.y) || Math.abs(a.x - b.x) < MIN_DIST || Math.abs(a.y - b.y) < MIN_DIST);
+      return [a, b];
     }
-    document.getElementById('submitBtn').onclick = function() {
+    function startGame(newSegment = true) {
+      if (newSegment) {
+        let [a, b] = randomSegment();
+        state.pointA = a;
+        state.pointB = b;
+        state.tries = 0;
+        state.solved = false;
+        state.startTime = Date.now();
+        state.elapsed = 0;
+      }
+      triesCount.textContent = `Tries: ${state.tries}`;
+      timerDisplay.textContent = `Time: ${state.elapsed || 0}s`;
+      guessInput.value = '';
+      guessInput.disabled = false;
+      skipBtn.disabled = false;
+      drawGraph();
+      saveState();
+      if (timerId) clearInterval(timerId);
+      timerId = setInterval(() => {
+        if (!state.solved) {
+          let t = Math.floor((Date.now() - state.startTime) / 1000);
+          timerDisplay.textContent = `Time: ${t}s`;
+        }
+      }, TIMER_INTERVAL);
+    }
+    function endGamePopup(correct, skipped = false) {
+      let frac = slopeFrac(state.pointA, state.pointB);
+      let dec = slopeDecimal(state.pointA, state.pointB);
+      let tries = state.tries;
+      let time = Math.floor((Date.now() - state.startTime) / 1000);
+      state.solved = true;
+      state.elapsed = time;
+      saveState();
+      let msg = '';
+      if (skipped) {
+        msg += `<div class="mb-2">You skipped this one.</div>`;
+      } else {
+        msg += `<div class="mb-2">Correct! 🎉</div>`;
+      }
+      msg += `<div><strong>Tries:</strong> ${tries}</div>`;
+      msg += `<div><strong>Time:</strong> ${time}s</div>`;
+      msg += `<div class="mt-2"><strong>Slope:</strong> <span class="text-primary">${formatFrac(frac)}</span> (<span class="text-secondary">${formatDecimal(dec)}</span>)</div>`;
+      resultModalBody.innerHTML = msg;
+      resultModal.show();
+      guessInput.disabled = true;
+      skipBtn.disabled = true;
+      if (timerId) clearInterval(timerId);
+    }
+
+    // --- Event Handlers ---
+    guessForm.addEventListener('submit', function(e) {
+      e.preventDefault();
       if (state.solved) return;
-      let val = document.getElementById('slopeInput').value;
-      let parsed = parseSlopeInput(val);
-      if (!parsed) {
-        document.getElementById('slopeInput').style.borderColor = 'red';
-        setTimeout(()=>{
-          document.getElementById('slopeInput').style.borderColor = '';
-        }, 600);
+      let guess = parseSlopeInput(guessInput.value);
+      let actual = slopeDecimal(state.pointA, state.pointB);
+      state.tries++;
+      triesCount.textContent = `Tries: ${state.tries}`;
+      saveState();
+      if (guess === null) {
+        guessInput.classList.add('is-invalid');
+        guessInput.value = '';
+        guessInput.placeholder = 'Invalid input';
         return;
       }
-      state.tries++;
-      saveState();
-      if (slopeEqual(parsed, state.slope)) {
-        state.solved = true;
-        state.elapsed = Date.now() - state.startTime;
-        saveState();
-        showPopup(true);
-        document.getElementById('newGameBtn').style.display = '';
+      guessInput.classList.remove('is-invalid');
+      // Accept if within 0.01 of actual
+      if (Math.abs(guess - actual) < 0.01) {
+        endGamePopup(true);
       } else {
-        updateTriesInfo();
-        document.getElementById('slopeInput').value = '';
-        document.getElementById('slopeInput').focus();
-      }
-    };
-    document.getElementById('slopeInput').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') document.getElementById('submitBtn').click();
-    });
-    document.getElementById('skipBtn').onclick = function() {
-      showPopup(false);
-      document.getElementById('newGameBtn').style.display = '';
-    };
-    document.getElementById('newGameBtn').onclick = function() {
-      newSegment();
-      hidePopup();
-    };
-    // --- Popup ---
-    function showPopup(solved) {
-      let popup = document.getElementById('popup');
-      let content = document.getElementById('popupContent');
-      let slopeStr = slopeToString(state.slope.num, state.slope.den);
-      let html = '';
-      if (solved) {
-        html += `<h2>Correct!</h2>`;
-        html += `<div class="summary">You got it in <b>${state.tries}</b> tries<br>Time: <b>${(state.elapsed/1000).toFixed(1)}s</b></div>`;
-        html += `<div>Slope: <b>${slopeStr}</b></div>`;
-      } else {
-        html += `<h2>Skipped</h2>`;
-        html += `<div>Slope: <b>${slopeStr}</b></div>`;
-      }
-      html += `<button id=\"popupNewGameBtn\">New Game</button>`;
-      content.innerHTML = html;
-      popup.classList.add('active');
-    }
-    function hidePopup() {
-      document.getElementById('popup').classList.remove('active');
-    }
-    // Handle new game from popup
-    document.addEventListener('click', function(e) {
-      if (e.target && e.target.id === 'popupNewGameBtn') {
-        newSegment();
-        hidePopup();
+        guessInput.value = '';
+        guessInput.placeholder = 'Try again!';
       }
     });
-    // --- Theme toggle ---
-    function setTheme(theme) {
-      document.documentElement.setAttribute('data-theme', theme);
-      state.theme = theme;
-      document.getElementById('themeToggle').textContent = theme === 'dark' ? '🌙' : '☀️';
-      saveState();
-      drawGraph(); // Redraw to update segment/endpoint color
-    }
-    document.getElementById('themeToggle').onclick = function() {
-      setTheme(state.theme === 'dark' ? 'light' : 'dark');
-    };
-    // --- Init ---
-    function startGame() {
-      let loaded = loadState();
-      setTheme(state.theme || 'light');
+    skipBtn.addEventListener('click', function() {
+      if (state.solved) return;
+      endGamePopup(false, true);
+    });
+    newGameBtn.addEventListener('click', function() {
+      clearState();
+      startGame(true);
+    });
+    toggleThemeBtn.addEventListener('click', function() {
+      toggleTheme();
+    });
+    window.addEventListener('resize', function() {
       resizeCanvas();
-      // If no valid state, always start a new segment
-      if (!loaded) {
-        newSegment();
+      drawGraph();
+    });
+
+    // --- Init ---
+    function init() {
+      // Bootstrap icons
+      let icon = document.createElement('link');
+      icon.rel = 'stylesheet';
+      icon.href = 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css';
+      document.head.appendChild(icon);
+      // Theme
+      let prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      let loaded = loadState();
+      setTheme(state.theme || (prefersDark ? 'dark' : 'light'));
+      resizeCanvas();
+      if (loaded) {
+        startGame(false);
       } else {
-        drawGraph();
-        updateTriesInfo();
-        if (state.solved) document.getElementById('newGameBtn').style.display = '';
+        startGame(true);
       }
     }
-    window.onload = startGame;
+    window.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
